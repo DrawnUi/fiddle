@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DrawnUI Fiddle — Online C# Playground for SkiaSharp UI</title>
+
+    <meta name="description" content="Write C# in your browser and watch it draw. Edit an interface, run it, share it as a link. For .NET developers building UI with DrawnUI and SkiaSharp.">
+    <link rel="ai-catalog" href="https://fiddle.drawnui.net/.well-known/ai-catalog.json">
+    <link rel="canonical" href="https://fiddle.drawnui.net/">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "DrawnUI Fiddle",
+      "url": "https://fiddle.drawnui.net/",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any (browser)",
+      "offers": { "@type": "Offer", "price": "0" },
+      "description": "In-browser C# playground for DrawnUI: Roslyn compiles your code to WebAssembly and renders it live with SkiaSharp. Share snippets as links or standalone mini-apps."
+    }
+    </script>
+    <meta name="theme-color" content="#0A0F1E">
+
+    <!-- Icons. Google Search needs a >=48x48 icon (32x32 gets the default globe);
+         96x96 png + root /favicon.ico cover it, svg stays for browsers. -->
+    <link rel="icon" type="image/svg+xml" href="_content/DrawnUi.Fiddle/favicon.svg">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
+    <link rel="icon" type="image/png" href="_content/DrawnUi.Fiddle/favicon.png">
+    <link rel="apple-touch-icon" href="_content/DrawnUi.Fiddle/apple-icon.png">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fiddle.drawnui.net/">
+    <meta property="og:site_name" content="DrawnUI Fiddle">
+    <meta property="og:title" content="DrawnUI Fiddle">
+    <meta property="og:description" content="DrawnUI Fiddle powered by SkiaSharp running in your browser. Edit C# and compile live to render with Skia.">
+    <meta property="og:image" content="https://fiddle.drawnui.net/x.jpg">
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="400">
+    <meta property="og:image:alt" content="DrawnUI Fiddle">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://fiddle.drawnui.net/">
+    <meta name="twitter:title" content="DrawnUI Fiddle">
+    <meta name="twitter:description" content="DrawnUI Fiddle powered by SkiaSharp running in your browser. Edit C# and compile live to render with Skia.">
+    <meta name="twitter:image" content="https://fiddle.drawnui.net/x.jpg">
+    <meta name="twitter:image:alt" content="DrawnUI Fiddle">
+
+    <base href="/" />
+    <!-- Single Page Apps for GitHub Pages — restores the path stashed by 404.html
+         (rafrex/spa-github-pages, MIT). No-op unless arriving via a deep-link 404. -->
+    <script type="text/javascript">
+        (function (l) {
+            if (l.search) {
+                var q = {};
+                l.search.slice(1).split('&').forEach(function (v) {
+                    var a = v.split('=');
+                    q[a[0]] = a.slice(1).join('=').replace(/~and~/g, '&');
+                });
+                if (q.p !== undefined) {
+                    window.history.replaceState(null, null,
+                        l.pathname.slice(0, -1) + (q.p || '') +
+                        (q.q ? ('?' + q.q) : '') +
+                        l.hash
+                    );
+                }
+            }
+        }(window.location))
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --fx-bg: #05070d;
+            --fx-cyan: #22d3ee;
+            --fx-violet: #a855f7;
+            --fx-pink: #ec4899;
+            --fx-text: #e6edf6;
+            --fx-dim: #8b98ab;
+            --fx-panel: rgba(13, 18, 30, 0.72);
+            --fx-border: rgba(103, 232, 249, 0.18);
+        }
+
+        html, body {
+            min-height: 100%;
+            margin: 0;
+        }
+        /* form controls don't inherit font by default */
+        button, input, select, textarea {
+            font-family: inherit;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Exo 2", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--fx-bg);
+            color: var(--fx-text);
+            overflow-x: hidden;
+        }
+
+        /* ── Animated deep-space backdrop ─────────────────────────────── */
+        .fx-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            background: radial-gradient(1200px 700px at 80% -10%, rgba(168, 85, 247, 0.16), transparent 60%), radial-gradient(1000px 600px at -10% 30%, rgba(34, 211, 238, 0.12), transparent 60%), radial-gradient(900px 700px at 60% 110%, rgba(236, 72, 153, 0.10), transparent 60%), var(--fx-bg);
+        }
+
+        /* Soft glow via radial-gradient, NOT filter:blur. A blur() filter is its own GPU
+           layer; three 90px-blur blobs starved the WebGL canvas layer and the browser
+           dropped canvas frames at random → the idle "blink". A gradient fading to
+           transparent gives the same soft look for free (no filter layer). */
+        .fx-blob {
+            position: absolute;
+            width: 44vw;
+            height: 44vw;
+            border-radius: 50%;
+            opacity: 0.5;
+            will-change: transform;
+        }
+
+        .fx-blob-a {
+            background: radial-gradient(circle, #164e63 0%, transparent 68%);
+            top: -18vw;
+            right: -10vw;
+            animation: fx-float-a 26s ease-in-out infinite alternate;
+        }
+
+        .fx-blob-b {
+            background: radial-gradient(circle, #3b0764 0%, transparent 68%);
+            bottom: -20vw;
+            left: -12vw;
+            animation: fx-float-b 32s ease-in-out infinite alternate;
+        }
+
+        .fx-blob-c {
+            background: radial-gradient(circle, #500724 0%, transparent 68%);
+            top: 30%;
+            left: 55%;
+            width: 28vw;
+            height: 28vw;
+            animation: fx-float-c 22s ease-in-out infinite alternate;
+        }
+
+        /* translate-only drift: the layer just moves (cheap compositor op). scale() was
+           re-blurring the 90px-blur blob every frame → starved the canvas GL layer → blink. */
+        @keyframes fx-float-a {
+            to {
+                transform: translate(-8vw, 10vh);
+            }
+        }
+
+        @keyframes fx-float-b {
+            to {
+                transform: translate(10vw, -8vh);
+            }
+        }
+
+        @keyframes fx-float-c {
+            to {
+                transform: translate(-12vw, -10vh);
+            }
+        }
+
+        .fx-grid {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(103, 232, 249, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(103, 232, 249, 0.05) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: radial-gradient(75% 60% at 50% 30%, #000 0%, transparent 100%);
+            -webkit-mask-image: radial-gradient(75% 60% at 50% 30%, #000 0%, transparent 100%);
+        }
+
+        /* ── Header ───────────────────────────────────────────────────── */
+        .fx-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            background: rgba(5, 7, 13, 0.65);
+            border-bottom: 1px solid var(--fx-border);
+        }
+
+        .fx-header-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 14px 20px;
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .fx-logo {
+            font-size: 22px;
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: 0.02em;
+            color: var(--fx-text);
+            text-decoration: none;
+            text-shadow: 0 0 18px rgba(103, 232, 249, 0.35);
+        }
+
+            .fx-logo b {
+                font-weight: 800;
+                background: linear-gradient(92deg, var(--fx-cyan), var(--fx-violet) 55%, var(--fx-pink));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+        .fx-tag {
+            font-size: 13px;
+            color: var(--fx-dim);
+        }
+
+        /* The auto margin is what pushes the right-hand group of the header away from the tagline,
+           so it belongs to whichever control comes FIRST in that group. Login now sits before
+           About: leaving it on About stranded Login in the middle of the header with a 568px hole
+           beside it. Login carries the margin; About sits straight after it, as it always did. */
+        #fx-account { margin-left: auto; }
+        #fx-account ~ .fx-site { margin-left: 0; }
+
+        .fx-site {
+            margin-left: auto;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #67e8f9;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(103, 232, 249, 0.35);
+            transition: border-color 0.15s, text-shadow 0.15s;
+        }
+
+            .fx-site:hover {
+                border-color: #67e8f9;
+                text-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
+            }
+
+        .fx-live {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            color: #67e8f9;
+            border: 1px solid rgba(103, 232, 249, 0.35);
+            border-radius: 999px;
+            padding: 4px 12px;
+        }
+
+        .fx-live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22d3ee;
+            box-shadow: 0 0 8px 2px rgba(34, 211, 238, 0.8);
+            animation: fx-pulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes fx-pulse {
+            50% {
+                opacity: 0.35;
+            }
+        }
+
+        /* ── Help button + popup ──────────────────────────────────────── */
+        .fx-help-btn {
+            cursor: pointer;
+            background: none;
+            padding: 0;
+            border: 0;
+            border-bottom: 1px solid rgba(103, 232, 249, 0.35);
+        }
+
+        .fx-help-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(3, 5, 10, 0.72);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            animation: fx-help-fade 0.18s ease-out;
+        }
+
+        @keyframes fx-help-fade {
+            from { opacity: 0; }
+        }
+
+        .fx-help-card {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: 34px 32px 26px;
+            border-radius: 18px;
+            border: 1px solid var(--fx-border);
+            background: linear-gradient(160deg, rgba(18, 22, 34, 0.96), rgba(9, 11, 18, 0.96));
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(103, 232, 249, 0.08);
+            text-align: center;
+            animation: fx-help-pop 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+        }
+
+        @keyframes fx-help-pop {
+            from { transform: translateY(10px) scale(0.97); opacity: 0; }
+        }
+
+        .fx-help-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--fx-border);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--fx-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+        }
+
+            .fx-help-close:hover {
+                color: var(--fx-text);
+                border-color: #67e8f9;
+            }
+
+        .fx-help-logo {
+            width: 96px;
+            height: 96px;
+            margin: 0 auto 6px;
+            filter: drop-shadow(0 0 20px rgba(103, 232, 249, 0.25));
+        }
+
+        .fx-help-title {
+            margin: 0 0 14px;
+            font-size: 24px;
+            font-weight: 800;
+            font-style: italic;
+            color: var(--fx-text);
+        }
+
+            .fx-help-title b {
+                background: linear-gradient(92deg, var(--fx-cyan), var(--fx-violet) 55%, var(--fx-pink));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+        .fx-help-lead {
+            margin: 0 0 18px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--fx-dim);
+        }
+
+            .fx-help-lead a,
+            .fx-help-credit a {
+                color: #67e8f9;
+                text-decoration: none;
+                border-bottom: 1px solid rgba(103, 232, 249, 0.35);
+            }
+
+                .fx-help-lead a:hover,
+                .fx-help-credit a:hover {
+                    border-color: #67e8f9;
+                }
+
+        .fx-help-tips {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 0 0 20px;
+            text-align: left;
+        }
+
+        .fx-help-tip {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--fx-dim);
+            padding: 9px 13px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--fx-border);
+        }
+
+            .fx-help-tip b {
+                color: var(--fx-text);
+            }
+
+        .fx-help-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 0 22px;
+        }
+
+            .fx-help-links a {
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: 0.03em;
+                color: #67e8f9;
+                text-decoration: none;
+                padding: 8px 16px;
+                border-radius: 999px;
+                border: 1px solid rgba(103, 232, 249, 0.35);
+                transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+            }
+
+                .fx-help-links a:hover {
+                    border-color: #67e8f9;
+                    background: rgba(103, 232, 249, 0.08);
+                    box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+                }
+
+        .fx-help-discuss {
+            margin: 0 0 18px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(168, 85, 247, 0.28);
+            background: rgba(168, 85, 247, 0.06);
+            font-size: 13px;
+            line-height: 1.55;
+            color: var(--fx-dim);
+        }
+
+            .fx-help-discuss a {
+                color: #c99bff;
+                text-decoration: none;
+                border-bottom: 1px solid rgba(168, 85, 247, 0.4);
+            }
+
+                .fx-help-discuss a:hover {
+                    border-color: #c99bff;
+                }
+
+        .fx-help-credit {
+            font-size: 11px;
+            letter-spacing: 0.02em;
+            color: var(--fx-dim);
+            opacity: 0.75;
+        }
+
+        .fx-help-heart {
+            animation: fx-pulse 1.4s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        .fiddle-app-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 10px 20px 40px;
+        }
+
+        /* ── Re-skin the fiddle page (RCL) to dark glass ──────────────── */
+        body .docs-page h1 {
+            display: none; /* header replaces it */
+        }
+
+        body .docs-page p {
+            color: var(--fx-dim);
+        }
+
+            body .docs-page p code, body .docs-page p strong {
+                color: #b7e3f7;
+            }
+
+        /* Home is an <a> so the landing can intercept it and keep the runtime warm; it has to
+           pick up the dark styling here, not just the light base rule in FiddlePage. */
+        body .fiddle-presets button,
+        body .fiddle-presets a.fiddle-home {
+            border: 1px solid rgba(139, 152, 171, 0.28);
+            background: rgba(13, 18, 30, 0.7);
+            color: var(--fx-text);
+            transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+        }
+
+            body .fiddle-presets button:hover,
+            body .fiddle-presets a.fiddle-home:hover {
+                border-color: rgba(103, 232, 249, 0.65);
+                box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
+                transform: translateY(-1px);
+            }
+
+            /* Selected = the stroke without the lift/scale — even while hovered. */
+            body .fiddle-presets button.selected,
+            body .fiddle-presets button.selected:hover {
+                border-color: rgba(168, 85, 247, 0.65);
+                box-shadow: 0 0 14px rgba(168, 85, 247, 0.3);
+                transform: none;
+            }
+
+        body .fiddle-split {
+            border: 1px solid var(--fx-border);
+            box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.08), 0 18px 60px rgba(0, 0, 0, 0.55), 0 0 42px rgba(34, 211, 238, 0.07);
+        }
+
+        body .fiddle-divider {
+            background: #1b2637;
+        }
+
+            body .fiddle-divider:hover, body .fiddle-divider.dragging {
+                background: #2b3d57;
+            }
+
+        body .fiddle-divider-h {
+            background: #1b2637;
+        }
+
+            body .fiddle-divider-h:hover, body .fiddle-divider-h.dragging {
+                background: #2b3d57;
+            }
+
+        body .fiddle-intelli {
+            color: var(--fx-dim);
+        }
+
+        body .fiddle-status {
+            color: var(--fx-dim);
+        }
+
+        body .fiddle-copy {
+            border: 1px solid rgba(139, 152, 171, 0.28);
+            background: rgba(13, 18, 30, 0.7);
+            color: var(--fx-text);
+        }
+
+            body .fiddle-copy:hover {
+                border-color: rgba(103, 232, 249, 0.65);
+                background: rgba(13, 18, 30, 0.9);
+            }
+
+        body .fiddle-run {
+            background: linear-gradient(92deg, #0891b2, #7c3aed);
+            box-shadow: 0 0 18px rgba(124, 58, 237, 0.35);
+        }
+
+        #blazor-error-ui {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 8px 16px;
+            background: #b32121;
+            color: #fff;
+            z-index: 1000;
+        }
+
+        /* Boot placeholder */
+        /* The cold-boot screen. It sits OUTSIDE #app so Blazor's first render cannot take it away
+           mid-wait — that is what made the page arrive in stages: chrome first, then a pause, then
+           the editor. It stays until the editor is actually usable, and everything appears at once. */
+        .fx-boot-screen {
+            position: fixed; inset: 0; z-index: 1500;
+            background: var(--fx-bg);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .fx-boot {
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 18px;
+            color: var(--fx-dim);
+            letter-spacing: 0.12em;
+            font-size: 13px;
+        }
+
+        .fx-boot-ring {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 2px solid rgba(103, 232, 249, 0.18);
+            border-top-color: #22d3ee;
+            animation: fx-spin 0.9s linear infinite;
+        }
+
+        @keyframes fx-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* No min-height here: the footer now sits after #app, so a viewport-tall #app pushed it
+           off screen on the editor's loading state. The fixed .fx-bg paints the full viewport
+           regardless, so nothing looks short. */
+
+        /* ---------- landing (static twin in #app + Blazor FiddleCommunity share these) ---------- */
+        .fx-land { max-width: 1400px; margin: 0 auto; padding: 10px 20px 60px; }
+        .fx-hero { text-align: center; padding: 40px 0 34px; }
+        .fx-hero h1 { font-size: clamp(30px, 5vw, 52px); font-weight: 800; margin: 0 0 12px; letter-spacing: -0.01em;
+            background: linear-gradient(90deg, #e6edf6, #67e8f9 60%, #d8b4fe); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .fx-note { margin: -6px 0 16px; color: var(--fx-dim); font-size: 13px; line-height: 1.5; }
+        .fx-hero p { max-width: 640px; margin: 0 auto 22px; color: var(--fx-dim); font-size: 16px; line-height: 1.55; }
+        .fx-hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .fx-cta { display: inline-block; padding: 12px 26px; border-radius: 12px; font-weight: 800; font-size: 15px; text-decoration: none; cursor: pointer;
+            border: 1px solid rgba(103, 232, 249, 0.6); background: rgba(34, 211, 238, 0.16); color: #67e8f9; transition: background 0.15s, box-shadow 0.15s; }
+        .fx-cta:hover { background: rgba(34, 211, 238, 0.28); box-shadow: 0 0 24px rgba(34, 211, 238, 0.25); }
+        .fx-cta.ghost { border-color: var(--fx-border); background: none; color: var(--fx-dim); }
+        .fx-cta.ghost:hover { color: var(--fx-text); border-color: #67e8f9; box-shadow: none; }
+        .fx-cta-head { padding: 6px 14px; font-size: 13px; border-radius: 999px; }
+        .fx-cta-head.loading::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 8px; border-radius: 50%; background: #22d3ee; animation: fx-pulse 1s ease-in-out infinite; vertical-align: middle; }
+        @keyframes fx-pulse { 50% { opacity: 0.2; } }
+        .fx-feed-head { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin: 10px 0 16px; }
+        .fx-contrib { margin-left: auto; }
+        .fc-pop-text { max-width: 620px; }
+        .fc-steps { margin: 0 0 14px; padding-left: 20px; color: #c9d3e0; font-size: 14px; line-height: 1.6; } .fc-steps li { margin: 6px 0; }
+        .fx-feed-head h2 { font-size: 22px; font-weight: 800; margin: 0; }
+        .fx-tabs { display: flex; gap: 4px; border: 1px solid var(--fx-border); border-radius: 999px; padding: 3px; }
+        .fx-tabs button, .fx-tabs span { padding: 5px 14px; border-radius: 999px; border: 0; background: none; color: var(--fx-dim); font-size: 13px; font-weight: 700; cursor: pointer; }
+        .fx-tabs .on { background: rgba(34, 211, 238, 0.16); color: #67e8f9; }
+        .fx-mk { margin-top: 50px; }
+        .fx-mk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+        .fx-mk-card { border: 1px solid var(--fx-border); border-radius: 14px; padding: 16px 18px; background: var(--fx-panel); }
+        .fx-mk-card h3 { margin: 0 0 6px; font-size: 15px; color: #67e8f9; }
+        .fx-mk-card p { margin: 0; color: var(--fx-dim); font-size: 14px; line-height: 1.55; }
+        .fx-mk a { color: #8fd0ff; }
+        .fx-mk-presets { margin: 26px 0 0; color: var(--fx-dim); font-size: 14px; line-height: 2; }
+        .fx-mk-presets a { display: inline-block; margin: 0 4px; padding: 1px 10px; border: 1px solid var(--fx-border); border-radius: 999px; color: var(--fx-text); text-decoration: none; font-size: 13px; }
+        .fx-mk-presets a:hover { border-color: #67e8f9; color: #67e8f9; }
+        .fx-mk-foot { margin: 22px 0 0; color: var(--fx-dim); font-size: 13px; line-height: 1.6; }
+
+        .fx-legal { max-width: 820px; margin: 0 auto; padding: 24px 20px 60px; color: var(--fx-text); line-height: 1.65; font-size: 15px; }
+        .fx-docs { max-width: 900px; }
+        .fx-docs-toc { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 18px; padding: 12px 14px; border: 1px solid var(--fx-border); border-radius: 12px; font-size: 13px; }
+        .fx-docs-toc a { color: var(--fx-dim); text-decoration: none; } .fx-docs-toc a:hover { color: #67e8f9; }
+        .fx-docs h2 { scroll-margin-top: 70px; } .fx-docs code { font-size: 13px; background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 4px; }
+        .fx-docs pre { background: rgba(255,255,255,.05); border: 1px solid var(--fx-border); border-radius: 10px; padding: 12px 14px; overflow-x: auto; } .fx-docs pre code { background: none; padding: 0; }
+        .fx-legal h1 { font-size: 30px; margin: 0 0 4px; } .fx-legal h2 { font-size: 17px; margin: 26px 0 8px; color: #67e8f9; }
+        .fx-legal p, .fx-legal li { color: #c9d3e0; } .fx-legal a { color: #8fd0ff; } .fx-legal-date { color: var(--fx-dim); font-size: 13px; }
+        .fx-legal-nav { display: flex; gap: 6px; margin-bottom: 18px; } .fx-legal-nav a { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--fx-border); color: var(--fx-dim); text-decoration: none; font-size: 13px; font-weight: 700; }
+        .fx-legal-nav a.on { background: rgba(34, 211, 238, 0.16); color: #67e8f9; }
+        .fc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+        .fc-card { display: block; cursor: pointer; border-radius: 14px; overflow: hidden; text-align: left; padding: 0; text-decoration: none;
+            border: 1px solid var(--fx-border); background: var(--fx-panel); color: var(--fx-text); transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; }
+        .fc-card:hover { transform: translateY(-2px); border-color: #67e8f9; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(34, 211, 238, 0.12); }
+        .fc-thumb { display: block; width: 100%; aspect-ratio: 1200 / 630; object-fit: cover; background: #0f1420; }
+        .fc-thumb.none { display: flex; align-items: center; justify-content: center; color: #3b4a5e; font-size: 40px; font-weight: 800; }
+        .fc-body { padding: 10px 12px 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .fc-desc { flex: 1 1 100%; order: 9; font-size: 12px; color: var(--fx-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fc-pop-desc { margin: 0 0 8px; color: var(--fx-text); font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+        .fc-name { flex: 1 1 auto; min-width: 0; font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fc-author { font-size: 11px; color: var(--fx-dim); white-space: nowrap; }
+        .fc-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 6px; background: rgba(103, 232, 249, 0.1); color: #9ee8f5; border: 0; cursor: pointer; font-family: inherit; }
+        button.fc-tag:hover { background: rgba(103, 232, 249, 0.22); }
+        .fx-tagbar { display: flex; gap: 6px; flex-wrap: wrap; margin: -4px 0 12px; }
+        .fx-tagbar button { padding: 4px 11px; border-radius: 999px; border: 1px solid var(--fx-border); background: none; color: var(--fx-dim); font-size: 12px; font-weight: 700; cursor: pointer; }
+        .fx-tagbar button small { opacity: .6; font-weight: 500; margin-left: 3px; }
+        .fx-tagbar button.on { background: rgba(34, 211, 238, 0.16); color: #67e8f9; border-color: rgba(103, 232, 249, 0.5); }
+        .fc-pop-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 0 0 10px; }
+        .fc-tag-input { flex: 1 1 200px; min-width: 160px; padding: 5px 9px; border-radius: 8px; border: 1px solid var(--fx-border); background: rgba(255,255,255,.04); color: #e5eefb; font-size: 12px; }
+        .fc-sm { padding: 4px 10px !important; font-size: 12px !important; }
+        .fc-kind { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(103, 232, 249, 0.35); color: #67e8f9; }
+        .fc-kind.app { border-color: rgba(168, 85, 247, 0.6); color: #d8b4fe; }
+        .fc-kind.official { border-color: rgba(251, 191, 36, 0.5); color: #fcd34d; }
+        .fc-stars { color: #fcd34d; font-size: 14px; letter-spacing: 1px; white-space: nowrap; }
+        .fc-stars small { color: var(--fx-dim); font-size: 12px; margin-left: 4px; letter-spacing: 0; }
+        .fc-empty, .fc-err { color: var(--fx-dim); padding: 40px 0; text-align: center; }
+        .fc-err { color: #fca5a5; }
+        .fc-sentinel { min-height: 40px; margin: 16px 0 0; text-align: center; color: var(--fx-dim); font-size: 13px; }
+        .fc-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px;
+            background: rgba(3, 5, 10, 0.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+        .fc-pop { position: relative; width: 100%; max-width: 760px; max-height: 92vh; overflow-y: auto; border-radius: 18px;
+            border: 1px solid var(--fx-border); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+            background: linear-gradient(160deg, rgba(18, 22, 34, 0.98), rgba(9, 11, 18, 0.98)); color: var(--fx-text); }
+        .fc-pop .fc-thumb { border-radius: 18px 18px 0 0; }
+        .fc-pop-body { padding: 18px 22px 22px; }
+        .fc-pop-title { font-size: 20px; font-weight: 800; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .fc-pop-meta { color: var(--fx-dim); font-size: 12px; margin: 0 0 16px; }
+        .fc-vote { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 18px; }
+        .fc-vote-stars button { background: none; border: 0; cursor: pointer; font-size: 28px; line-height: 1; color: #3b4a5e; padding: 0 2px; transition: color 0.1s, transform 0.1s; }
+        .fc-vote-stars button.on, .fc-vote-stars:hover button:hover, .fc-vote-stars:hover button:has(~ button:hover) { color: #fcd34d; }
+        .fc-vote-stars button:hover { transform: scale(1.15); }
+        .fc-vote-hint { color: var(--fx-dim); font-size: 13px; }
+        .fc-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .fc-open { padding: 10px 18px; border-radius: 10px; border: 1px solid rgba(103, 232, 249, 0.5); text-decoration: none;
+            background: rgba(34, 211, 238, 0.14); color: #67e8f9; font-weight: 700; cursor: pointer; font-size: 14px; }
+        .fc-open:hover { background: rgba(34, 211, 238, 0.24); }
+        .fc-open.green { border-color: rgba(74, 222, 128, 0.5); background: rgba(34, 197, 94, 0.14); color: #86efac; }
+        .fc-open.green:hover { background: rgba(34, 197, 94, 0.26); }
+        .fc-open.pink { border-color: rgba(244, 114, 182, 0.5); background: rgba(236, 72, 153, 0.14); color: #f9a8d4; }
+        .fc-open.pink:hover { background: rgba(236, 72, 153, 0.26); }
+        .fc-ghost { padding: 10px 16px; border-radius: 10px; border: 1px solid var(--fx-border); background: none; color: var(--fx-dim); cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; font-family: inherit; }
+        .fc-ghost:hover { color: #e6edf6; border-color: #67e8f9; }
+        .fc-ghost.danger:hover { color: #fca5a5; border-color: #f87171; }
+        .fc-weight { display: inline-flex; align-items: center; gap: 4px; }
+        .fc-weight span { min-width: 22px; text-align: center; font-weight: 700; color: #fcd34d; font-size: 13px; }
+        .fc-weight .fc-ghost { padding: 8px 10px; }
+        .fc-overlay:focus { outline: none; }
+        .fc-pop-wrap { position: relative; width: 100%; max-width: 760px; }
+        .fc-nav { position: absolute;             
+            font-family: auto;
+            top: 50%; transform: translateY(-50%); z-index: 2; width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(103, 232, 249, 0.35); background: #0f1622; color: #e6edf6; font-size: 32px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding-bottom: 4px; box-shadow: 0 4px 18px rgba(0,0,0,.5); }
+        .fc-nav.prev { left: -23px; } .fc-nav.next { right: -23px; }
+        .fc-nav:hover { border-color: #67e8f9; color: #67e8f9; }
+        .fc-nav:disabled { display: none; }
+        @media (max-width: 900px) { .fc-nav { width: 38px; height: 38px; font-size: 26px; } .fc-nav.prev { left: -12px; } .fc-nav.next { right: -12px; } }
+        .fc-close { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%; z-index: 1;
+            border: 1px solid var(--fx-border); background: rgba(9, 11, 18, 0.8); color: #e6edf6; cursor: pointer; }
+
+        /* ---------- account (fa-*) — moved here from FiddleAccount.razor: the landing
+           renders the Login button and the sign-in card before any .NET is loaded, so
+           these rules must exist without that component. The editor's panel uses them
+           from here too — one copy, no drift. ---------- */
+    .fa-btn {
+        cursor: pointer;
+        background: none;
+        padding: 0;
+        border: 0;
+        /* The header one is an <a href="/login"> so it is a followable link; these keep it
+           looking exactly like the buttons that share this class. */
+        text-decoration: none;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        color: #67e8f9;
+        border-bottom: 1px solid rgba(103, 232, 249, 0.35);
+        transition: border-color 0.15s, text-shadow 0.15s;
+    }
+    .fa-btn:hover { border-color: #67e8f9; text-shadow: 0 0 10px rgba(34, 211, 238, 0.6); }
+    .fa-overlay {
+        position: fixed; inset: 0; z-index: 100;
+        display: flex; align-items: center; justify-content: center; padding: 24px;
+        background: rgba(3, 5, 10, 0.72);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    .fa-card {
+        position: relative; width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
+        padding: 28px 28px 22px; border-radius: 18px;
+        border: 1px solid var(--fx-border, rgba(103, 232, 249, 0.18));
+        background: linear-gradient(160deg, rgba(18, 22, 34, 0.96), rgba(9, 11, 18, 0.96));
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+        color: var(--fx-text, #e6edf6); font-size: 14px;
+    }
+    /* Signed-in: one fixed card size for every tab so switching never resizes or re-centers. */
+    .fa-card.fa-wide { max-width: 900px; height: min(88vh, 640px); }
+    .fa-close {
+        position: absolute; top: 12px; right: 14px; width: 32px; height: 32px;
+        border: 1px solid var(--fx-border, rgba(103, 232, 249, 0.18)); border-radius: 50%;
+        background: rgba(255, 255, 255, 0.04); color: var(--fx-dim, #8b98ab);
+        display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer;
+    }
+    .fa-close:hover { color: #e6edf6; border-color: #67e8f9; }
+    .fa-title { font-size: 18px; font-weight: 800; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+    .fa-lead { color: var(--fx-dim, #8b98ab); margin: 0 0 18px; font-size: 13px; }
+    .fa-tabs { display: flex; gap: 6px; margin: 0 0 18px; border-bottom: 1px solid var(--fx-border, rgba(103, 232, 249, 0.18)); }
+    .fa-tab {
+        background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 12px;
+        color: var(--fx-dim, #8b98ab); font-size: 13px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer;
+    }
+    .fa-tab.on { color: #67e8f9; border-bottom-color: #67e8f9; }
+    .fa-row { display: flex; gap: 10px; align-items: center; margin: 0 0 12px; flex-wrap: wrap; }
+    .fa-input, .fa-select {
+        box-sizing: border-box;   /* width:100% must include padding/border, else inputs spill into the next column */
+        flex: 1 1 200px; min-width: 0; padding: 9px 12px; font-size: 14px; color: #e6edf6;
+        background: rgba(255, 255, 255, 0.05); border: 1px solid var(--fx-border, rgba(103, 232, 249, 0.18)); border-radius: 10px;
+    }
+    .fa-input:focus, .fa-select:focus { outline: none; border-color: #67e8f9; }
+    .fa-select { color-scheme: dark; }
+    .fa-select option { background: #0f1420; color: #e6edf6; }
+    .fa-input[type=date] { color-scheme: dark; }
+    .fa-input.fa-code { letter-spacing: 0.4em; font-size: 20px; font-weight: 700; text-align: center; max-width: 220px; }
+    .fa-primary {
+        padding: 9px 16px; border-radius: 10px; border: 1px solid rgba(103, 232, 249, 0.5);
+        background: rgba(34, 211, 238, 0.14); color: #67e8f9; font-weight: 700; cursor: pointer; font-size: 13px;
+    }
+    .fa-primary:hover { background: rgba(34, 211, 238, 0.24); }
+    .fa-primary.fa-red { border-color: rgba(248, 113, 113, 0.6); background: rgba(248, 113, 113, 0.14); color: #fca5a5; }
+    .fa-primary.fa-red:hover { background: rgba(248, 113, 113, 0.26); }
+    .fa-filters { display: flex; gap: 4px; flex-wrap: wrap; margin: 0 0 10px; }
+    .fa-filters button { padding: 4px 11px; border-radius: 999px; border: 1px solid var(--fx-border, rgba(103, 232, 249, 0.18)); background: none; color: var(--fx-dim, #8b98ab); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .fa-filters button.on { background: rgba(34, 211, 238, 0.16); color: #67e8f9; border-color: rgba(103, 232, 249, 0.5); }
+    .fa-filters button:disabled { opacity: 0.4; cursor: default; }
+    .fa-list { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow: auto; }
+    .fa-item {
+        display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px;
+        border: 1px solid var(--fx-border, rgba(103, 232, 249, 0.18)); border-radius: 10px;
+    }
+    .fa-thumb { width: 72px; height: 38px; object-fit: cover; border-radius: 6px; background: #0f1420; flex: 0 0 auto; }
+    .fa-item-main { flex: 1 1 200px; min-width: 0; }
+    .fa-item-title { width: 100%; padding: 5px 8px; font-size: 13px; }
+    .fa-item-meta { font-size: 11px; opacity: 0.6; margin-top: 3px; }
+    .fa-item-actions { display: flex; gap: 6px; flex-wrap: wrap; flex: 0 0 auto; align-items: center; }
+    a.fa-ghost, a.fa-primary { text-decoration: none; display: inline-block; }
+    .fa-violet {
+        padding: 6px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 700;
+        border: 1px solid rgba(168, 85, 247, 0.5); background: rgba(168, 85, 247, 0.12); color: #d8b4fe;
+    }
+    .fa-violet:hover { background: rgba(168, 85, 247, 0.24); }
+    .fa-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--fx-dim, #8b98ab); cursor: pointer; padding: 0 6px; white-space: nowrap; }
+    .fa-check input { accent-color: #a855f7; cursor: pointer; }
+    .fa-check.on { color: #d8b4fe; }
+    .fa-pin.on { border-color: rgba(251, 191, 36, 0.6); background: rgba(251, 191, 36, 0.12); color: #fcd34d; }
+    .fa-ghost.on { color: #67e8f9; border-color: rgba(103, 232, 249, 0.6); }
+    .fa-primary:disabled { opacity: 0.5; cursor: default; }
+    .fa-primary.fa-sm { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
+    .fa-ghost {
+        padding: 6px 10px; border-radius: 8px; border: 1px solid var(--fx-border, rgba(103, 232, 249, 0.18));
+        background: none; color: var(--fx-dim, #8b98ab); cursor: pointer; font-size: 12px;
+    }
+    .fa-ghost:hover { color: #e6edf6; border-color: #67e8f9; }
+    .fa-ghost.fa-danger:hover { color: #fca5a5; border-color: #f87171; }
+    .fa-err { color: #fca5a5; font-size: 13px; margin: 0 0 12px; }
+    .fa-why { margin: 18px 0 4px; padding: 16px 18px; border-radius: 14px; border: 1px solid var(--fx-border, rgba(103, 232, 249, 0.18)); background: rgba(255, 255, 255, 0.03); }
+    .fa-why-title { font-weight: 800; font-size: 14px; margin: 0 0 10px; color: #67e8f9; }
+    .fa-why-list { margin: 0; padding: 0 0 0 18px; font-size: 13px; line-height: 1.5; color: #c9d3e0; }
+    .fa-why-list li { margin: 0 0 6px; }
+    .fa-why-list b { color: #e6edf6; }
+    .fa-hint { color: var(--fx-dim, #8b98ab); font-size: 12px; margin: 0 0 12px; }
+    .fa-dev { color: #fde68a; font-family: monospace; }
+    .fa-kv { display: grid; grid-template-columns: 130px 1fr; gap: 8px 14px; margin: 0 0 18px; }
+    .fa-kv dt { color: var(--fx-dim, #8b98ab); }
+    .fa-kv dd { margin: 0; }
+    .fa-badge { display: inline-flex; align-items: center; line-height: 1; padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .fa-badge.free { border: 1px solid rgba(139, 152, 171, 0.5); color: #8b98ab; }
+    .fa-badge.premium { border: 1px solid rgba(168, 85, 247, 0.6); color: #d8b4fe; }
+    .fa-badge.admin { border: 1px solid rgba(168, 85, 247, 0.6); color: #d8b4fe; background: rgba(168, 85, 247, 0.12); }
+    .fa-bar { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); overflow: hidden; margin: 6px 0 2px; }
+    .fa-bar > i { display: block; height: 100%; background: linear-gradient(90deg, #22d3ee, #a855f7); }
+    .fa-table { width: 100%; min-width: 860px; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+    .fa-table th { text-align: left; color: var(--fx-dim, #8b98ab); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--fx-border, rgba(103, 232, 249, 0.18)); }
+    .fa-table td { padding: 6px 10px 6px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); vertical-align: middle; white-space: nowrap; }
+    .fa-table th { padding-left: 0; }
+    .fa-table td:first-child { padding-right: 16px; }
+    .fa-table td.fa-actions button + button { margin-left: 6px; }
+    .fa-table .fa-input, .fa-table .fa-select { padding: 5px 8px; font-size: 12px; flex: none; width: 100%; }
+    .fa-table .fa-select { min-width: 96px; }
+    .fa-table td.fa-num { width: 80px; }
+    /* The title column was taking 764px of a 958px card and pushing every count off the right
+       edge. Cap it and clip; the full text is in the link's title attribute. */
+    .fa-stats-name { max-width: 340px; }
+    .fa-stats-name a, .fa-stats-name .fa-item-meta { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Sortable stats headers: a header that is also a button, without looking like one. */
+    .fa-sort { background: none; border: 0; padding: 0; cursor: pointer; color: inherit; font: inherit; letter-spacing: inherit; }
+    .fa-sort:hover, .fa-sort.on { color: #67e8f9; }
+    .fa-table td.fa-actions { white-space: nowrap; text-align: right; }
+    .fa-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    @@media (max-width: 600px) {
+        .fa-overlay { padding: 10px; align-items: flex-start; }
+        .fa-card { padding: 22px 16px 16px; max-height: 94vh; border-radius: 14px; }
+        .fa-card.fa-wide { height: 94vh; }
+        .fa-title { font-size: 16px; flex-wrap: wrap; gap: 6px; }
+        .fa-tabs { gap: 0; }
+        .fa-tab { padding: 8px 9px; font-size: 12px; }
+        .fa-kv { grid-template-columns: 1fr; gap: 2px 0; }
+        .fa-kv dt { margin-top: 8px; font-size: 12px; }
+        .fa-row .fa-input, .fa-row .fa-select { flex-basis: 100%; }
+        .fa-input.fa-code { max-width: none; }
+    }
+
+        /* Editor placeholder: the same box the split pane will occupy, so mounting the real
+           editor does not move the page. Its own look — .fiddle-split lives in FiddlePage. */
+        /* Same height as .fiddle-split in FiddlePage, so the real editor drops straight into the
+           space this was holding and nothing on the page moves. (It was briefly made short to keep
+           the footer in view during loading; the dim + card does that job now.) */
+        .fx-editor-boot {
+            height: clamp(520px, 52vh, 560px);
+        }
+        /* Opening a fiddle before the runtime is ready: keep the feed on screen, dim it, and say
+           what is happening in a small card. Losing the page you were reading and staring at a
+           bare spinner feels like a navigation that went wrong. */
+        .fx-load-overlay {
+            position: fixed; inset: 0; z-index: 90;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(3, 5, 10, 0.66);
+            backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+        }
+        .fx-load-pop {
+            display: flex; align-items: center; gap: 14px;
+            padding: 18px 24px; border-radius: 14px;
+            border: 1px solid var(--fx-border);
+            background: linear-gradient(160deg, rgba(18, 22, 34, 0.96), rgba(9, 11, 18, 0.96));
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+            color: var(--fx-text); font-size: 13px; font-weight: 700; letter-spacing: 0.12em;
+        }
+        .fx-load-pop .fx-boot-ring { width: 22px; height: 22px; }
+
+        /* One footer for every route, in the shell — the landing and the editor each used to
+           carry their own copy of it. */
+        .fx-foot-global { max-width: 1400px; margin: 0 auto; padding: 0 20px 40px; }
+
+        /* Cold boot of the editor or the player. Everything the visitor would otherwise watch
+           arrive in pieces — header, footer, background, the half-built editor — is held back, and
+           the bare loader owns the screen until the editor is ready. Driven by a class set in the
+           <head> below, so it applies on the FIRST paint: setting it from a script at the end of
+           <body> let the header show for a frame first. */
+        .fx-boot-screen { display: none; }
+        html.fx-booting .fx-boot-screen { display: flex; align-items: center; justify-content: center; }
+        /* the ring centres on the screen, so it must not carry the in-page block's own height */
+        .fx-boot-screen .fx-boot { min-height: 0; }
+        html.fx-booting #fx-land { display: none !important; }
+        /* #app is NOT hidden while it builds. The loader above is opaque and covers it, and that
+           is enough — hiding the element instead broke the canvas: SkiaSharp sets up its GL
+           surface during the build and came up blank with an unhandled error. Let it build in
+           full view underneath, then lift the cover. */
+    </style>
+
+    <script>
+        // The editor and the player are the routes with a payload to wait for; the landing has none.
+        // Kept deliberately dumb and duplicated from the gate below — it has to run before anything
+        // paints, and it must never throw here.
+        (function () {
+            try {
+                var p = location.pathname.replace(/\/+$/, '');
+                var landing = p === '' || p === '/community' || p === '/login'
+                    || /^\/show\/[A-Za-z0-9]{6,16}$/.test(p)
+                    || /^\/t\/[^/]+$/.test(p);
+                if (!landing) document.documentElement.classList.add('fx-booting');
+            } catch (e) { }
+        })();
+    </script>
+</head>
+
+<body>
+    <div class="fx-boot-screen" id="fx-boot-screen"><div class="fx-boot"><div class="fx-boot-ring"></div>.NET LOADING</div></div>
+
+    <!-- Chrome lives OUTSIDE #app: Blazor replaces #app when it boots, and the header must
+         survive that — it is the same header on every route, works before the runtime loads,
+         and its Account button is driven by account.js. -->
+    <div class="fx-bg" aria-hidden="true">
+        <div class="fx-blob fx-blob-a"></div>
+        <div class="fx-blob fx-blob-b"></div>
+        <div class="fx-blob fx-blob-c"></div>
+        <div class="fx-grid"></div>
+    </div>
+
+    <header class="fx-header">
+        <div class="fx-header-inner">
+            <a class="fx-logo" href="/" title="Home">DrawnUI <b>Fiddle</b></a>
+            <span class="fx-tag">Create with C# → SkiaSharp draws everywhere: Blazor, .NET MAUI, OpenTK and other .NET platforms.</span>
+            <a class="fa-btn" href="/login" id="fx-account" data-act="account" data-testid="fiddle-account-btn">Login</a>
+            <button class="fx-site fx-help-btn" data-act="about">About</button>
+        </div>
+    </header>
+
+    <main class="fiddle-app-main">
+        <!-- The landing lives OUTSIDE #app on purpose: Blazor replaces #app when the editor
+             mounts, and this markup has to survive that so Back to the feed is instant (and
+             keeps its scroll position). The worker injects the community feed at the fx:feed
+             markers (fiddle.drawnui.net/ only). -->
+        <div id="fx-land">
+            <main class="fiddle-app-main">
+                <div class="fx-land">
+
+                    <section class="fx-hero">
+                        <h1>Write C#. Share the app.</h1>
+                        <p>Every widget is C# source, dynamically compiled and drawn in your browser. Edit existing or create your own snippets, share and export. Same code for browser, desktop and mobile .NET apps.</p>
+                        <div class="fx-hero-cta">
+                            <a class="fx-cta" href="/app" data-testid="fiddle-open-editor">Open editor</a>
+                        </div>
+                    </section>
+
+
+                    <section class="fx-feed" id="community">
+                        <div class="fx-feed-head">
+                            <h2>Community</h2>
+                            <div class="fx-tabs" id="fx-tabs" data-testid="fiddle-community-tabs"><button data-act="sort" data-sort="top">Top</button><button class="on" data-act="sort" data-sort="new">New</button></div>
+                            <button class="fx-cta fx-cta-head fx-contrib" data-act="contribute" data-testid="fiddle-contribute">Contribute</button>
+                        </div>
+                        <div class="fx-tagbar" id="fx-tagbar" data-testid="fiddle-community-tags" hidden></div>
+                        <!-- landing.js replaces this whole block once the fresh list arrives; the
+                             worker-injected cards stay on screen until then (no blank, no reflow). -->
+                        <div id="fx-feed-body">
+                            <div class="fc-grid"><!--fx:feed--></div>
+                            <div class="fc-sentinel" id="fx-sentinel"></div>
+                        </div>
+                        <!--fx:feed-data-->
+                    </section>
+                    <section class="fx-mk">
+                        <div class="fx-mk-grid">
+                            <div class="fx-mk-card"><h3>Live compile</h3><p>Roslyn runs on WebAssembly inside the tab. Edit, press Run — or let HotReload rebuild on every keystroke once the code is clean.</p></div>
+                            <div class="fx-mk-card"><h3>One codebase, every screen</h3><p><a href="https://drawnui.net" target="_blank" rel="noopener">DrawnUI</a> draws with SkiaSharp, so the snippet you write here runs unchanged in .NET MAUI, Blazor, OpenTK and other .NET hosts.</p></div>
+                            <div class="fx-mk-card"><h3>Share and embed</h3><p>Every fiddle becomes a short link, an iframe you can drop into a blog, a screenshot, or a standalone web app that boots without the editor.</p></div>
+                            <div class="fx-mk-card"><h3>AI-ready</h3><p>Ships with <a href="/llms.txt" target="_blank" rel="noopener">llms.txt</a>, an HTTP API and agent skills — let your assistant write, share and test fiddles for you.</p></div>
+                        </div>
+                        <p class="fx-mk-presets">
+                            Start from a preset:
+                            <a href="/app/kids">Kids drawing</a> <a href="/app/sksl">SKSL shaders</a>
+                            <a href="/app/cells">Virtualized cells</a> <a href="/app/editor">Text editor</a>
+                            <a href="/app/ui">Settings screen</a> <a href="/app/glass">Frosted glass</a>
+                        </p>                        
+                    </section>
+
+  
+
+                </div>
+        </div>
+
+        <!-- Where the editor mounts. Empty on the landing; Blazor replaces whatever is in here
+             the moment it boots, so the placeholder below IS the handoff. -->
+        <div id="app"></div>
+    </main>
+
+    <footer class="fx-foot-global" id="fx-foot">
+        <p class="fx-mk-foot">
+            Built with <a href="https://github.com/DrawnUi/DrawnUi.Net" target="_blank" rel="noopener">DrawnUi.Net</a> — MIT-licensed, hardware-accelerated UI for .NET.<span id="fx-pub"></span>
+            Docs at <a href="https://drawnui.net" target="_blank" rel="noopener">drawnui.net</a> · questions in
+            <a href="https://github.com/DrawnUi/DrawnUi.Net/discussions/categories/fiddle" target="_blank" rel="noopener">GitHub Discussions</a>
+            · <a href="/docs/">Docs</a> · <a href="/terms/">Terms</a> · <a href="/privacy/">Privacy</a>
+        </p>
+    </footer>
+        <script>
+            // Publish number = the ?v= tail on our own script tags (bumped by every publish).
+            window.fiddlePublishNumber = function () {
+                var s = document.querySelector('script[src*="fiddle-intellisense.js"]')
+                    || document.querySelector('script[src*="blazor.webassembly.js"]')
+                    || document.querySelector('script[src*="landing.js"]');   // landing loads neither of the above
+                var m = s && s.getAttribute('src').match(/[?&]v=(\d+)/);
+                return m ? m[1] : '';
+            };
+            // The script tags sit at the end of <body>, so read them once the DOM is parsed.
+            document.addEventListener('DOMContentLoaded', function () { var n = window.fiddlePublishNumber(); var e = document.getElementById('fx-pub'); if (e && n) e.textContent = ' · Publish ' + n+' ·'; });
+            // The landing (/ and /community) is plain HTML + landing.js and never boots .NET.
+            // Every other route is the editor or the player, which IS .NET — those swap the
+            // landing markup for the boot spinner and load the runtime (see the tags below).
+            window.fxLanding = (function () {
+                var p = location.pathname.replace(/\/+$/, '');
+                // /show/{id} IS the landing — the index with one card open over it. It must not
+                // start the runtime: the preview is the light page people and crawlers land on.
+                return p === '' || p === '/community' || p === '/login'
+                    || /^\/show\/[A-Za-z0-9]{6,16}$/.test(p)
+                    // /t/{tag} is the catalogue filtered to one tag — the landing, not the editor.
+                    // Missing here, it fell through to the editor branch and showed the boot spinner
+                    // followed by an empty page.
+                    || /^\/t\/[^/]+$/.test(p);
+            })();
+            window.fiddleIsPlayer = /#play=/.test(location.hash) || /\/p\/[A-Za-z0-9]{6,16}$/.test(location.pathname)
+                // /d/{id}: the same canvas-only run UI, but for a draft (22-char id).
+                || /\/d\/[A-Za-z0-9]{22}$/.test(location.pathname);
+            if (window.fiddleIsPlayer) {
+                // The player draws a full-viewport layer over everything once it runs; hide the
+                // site chrome now so it is not visible for the second before that happens.
+                var hdr = document.querySelector('header.fx-header'); if (hdr) hdr.hidden = true;
+                var bd = document.querySelector('.fx-bg'); if (bd) bd.hidden = true;
+                var ft = document.getElementById('fx-foot'); if (ft) ft.hidden = true;
+            }
+            // The placeholder the editor replaces. Also used when the landing mounts the editor
+            // in place, so a cold /app and a click from the feed look identical.
+            // The page chrome the editor will fill, so a cold link shows a page rather than a void.
+            // The spinner is the overlay card on top of it, same as opening from the feed.
+            window.fxEditorShell =
+                '<div class="docs-page"><h1>DrawnUI Fiddle</h1>' +
+                '<p class="docs-lead">Edit C# and compile in browser, to render live with DrawnUI on a SkiaSharp canvas.</p></div>' +
+                '<div class="fiddle-shell"><div class="fx-editor-boot"></div></div>';
+            if (!window.fxLanding) {
+                // Arriving straight at the editor or the player: NOTHING but the loader until the
+                // runtime is up. No header, no footer, no backdrop, no page behind it — a bare
+                // screen with a ring in the middle, which is what this looked like before the
+                // dimmed-overlay version. The chrome comes back when the editor is drawn.
+                // html.fx-booting (set in <head>) is already holding the chrome and #app back and
+                // showing the loader — nothing to hide here.
+                document.getElementById('fx-land').hidden = true;
+            }
+        </script>
+
+        <!-- Landing overlays (card popup, contribute) render here; account.js owns its own host. -->
+        <div id="fx-modals"></div>
+    </div>
+
+    <div id="fx-about" hidden>
+        <div class="fx-help-overlay" data-act="close-about">
+            <div class="fx-help-card" data-stop="1">
+                <button class="fx-help-close" data-act="close-about" aria-label="Close">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                </button>
+                <img class="fx-help-logo" src="_content/DrawnUi.Fiddle/seed/drawnui.svg" alt="DrawnUI logo" />
+                <h2 class="fx-help-title">DrawnUI <b>Fiddle</b></h2>
+                <p class="fx-help-lead">
+                    Write C# in the browser, compile it live with Roslyn on WebAssembly, and watch
+                    <a href="https://drawnui.net" target="_blank" rel="noopener">DrawnUI</a> render it on a SkiaSharp canvas.
+                    The same code draws everywhere DrawnUI runs: Blazor, .NET&nbsp;MAUI, OpenTK and other .NET platforms.
+                </p>
+                <div class="fx-help-tips">
+                    <div class="fx-help-tip"><b>▶ Run</b> compiles and renders your code.</div>
+                    <div class="fx-help-tip"><b>HotReload</b> auto-runs on every edit once there are no errors.</div>
+                    <div class="fx-help-tip"><b>IntelliSense</b> gives Roslyn completion and error squiggles.</div>
+                    <div class="fx-help-tip">Pick a <b>preset</b> to explore controls, layouts, gestures and SkSL effects.</div>
+                    <div class="fx-help-tip"><b>Share</b> your source or <b>Export</b> your fiddle as a standalone web app — short links, iframe embeds, screenshot.</div>
+                    <div class="fx-help-tip"><b>AI-ready</b> — ask your AI to generate code, app comes with <a href="/llms.txt" target="_blank" rel="noopener">llms.txt</a> and appropriate skills.</div>
+                </div>
+                <div class="fx-help-links">
+                    <a href="https://drawnui.net" target="_blank" rel="noopener">🌐 drawnui.net</a>
+                    <a href="https://github.com/DrawnUi/DrawnUi.Net" target="_blank" rel="noopener">★ GitHub</a>
+                    <a href="/docs/">📖 Docs</a>
+                    <a href="/terms/">Terms</a>
+                    <a href="/privacy/">Privacy</a>
+                </div>
+                <p class="fx-help-discuss">
+                    Got a question, a bug, or a fiddle worth sharing? Post it in
+                    <a href="https://github.com/DrawnUi/DrawnUi.Net/discussions/categories/fiddle" target="_blank" rel="noopener">GitHub Discussions → Fiddle</a>
+                    — suggestions and questions welcome.
+                </p>
+                <div class="fx-help-credit">
+                    <span id="fx-help-ver"></span>created by <a href="https://taublast.github.io/" target="_blank" rel="noopener">Nick Kovalsky</a> with love <span class="fx-help-heart">❤️</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // About: plain overlay, no runtime. The library versions come from .NET, so the editor
+        // fills them in once it has booted; everywhere else the credit line just omits them.
+        window.fiddleSetVersions = function (drawnUi, skia) {
+            var e = document.getElementById('fx-help-ver');
+            if (e) e.textContent = 'Uses DrawnUI ' + drawnUi + ', SkiaSharp ' + skia + ', ';
+        };
+        document.addEventListener('click', function (e) {
+            var n = e.target.closest && e.target.closest('[data-act]');
+            if (!n) return;
+            var act = n.getAttribute('data-act');
+            if (act === 'about') { document.getElementById('fx-about').hidden = false; return; }
+            if (act === 'close-about') {
+                var stop = e.target.closest('[data-stop]');
+                if (stop && n.contains(stop)) return;   // click inside the card bubbled to the backdrop
+                document.getElementById('fx-about').hidden = true;
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') document.getElementById('fx-about').hidden = true;
+        });
+    </script>
+
+    <!-- Blazor's error slot: empty in the served markup, filled by script below. Crawlers and LLMs
+         read the raw HTML without the CSS that hides this box, so its text must not sit in the source. -->
+    <div id="blazor-error-ui"></div>
+    <script>
+        document.getElementById('blazor-error-ui').innerHTML =
+            'An unhandled error has occurred. <a href="." class="reload">Reload</a>';
+    </script>
+
+
+    <!-- Brotli boot: GitHub Pages doesn't serve .br/.gz for .dll/.wasm, so download
+         the precompressed .br assets and decompress client-side. Untrimmed fiddle
+         payload is large -> this is the difference between a ~few-MB and tens-of-MB
+         download. Skipped on localhost (dev serves compressed already). -->
+    <!-- Chrome scripts. account.js runs on every route with a header; landing.js only where
+         the landing is shown. Everything the editor needs (brotli decoder, .NET runtime, Roslyn,
+         Monaco) is loaded by fxBootEditor below — never on the landing, so reading the front
+         page does not cost ~16 MB. -->
+    <script>
+        // Both on every route with chrome: account.js owns the header button, landing.js owns
+        // moving between the feed and the editor. On /app it is what makes the logo work without
+        // throwing the warm runtime away; it fetches the feed only when the feed is actually shown.
+        if (!window.fiddleIsPlayer) {
+            document.write('<scr' + 'ipt src="account.js?v=81"></scr' + 'ipt>');
+            document.write('<scr' + 'ipt src="landing.js?v=81"></scr' + 'ipt>');
+        }
+    </script>
+
+    <script>
+        // Monaco spawns its editor worker from a blob and resolves workerMain against the origin
+        // root, ignoring <base href>. Under a GitHub Pages subpath that 404s, so pin the worker +
+        // baseUrl to the absolute deployed base path. (document.baseURI == origin + "/" locally.)
+        (function () {
+            var vs = new URL('_content/BlazorMonaco/lib/monaco-editor/min/vs/', document.baseURI).href;
+            window.MonacoEnvironment = {
+                getWorkerUrl: function () {
+                    var boot = "self.MonacoEnvironment={baseUrl:'" + vs + "'};importScripts('" + vs + "base/worker/workerMain.js');";
+                    return 'data:text/javascript;charset=utf-8,' + encodeURIComponent(boot);
+                }
+            };
+        })();
+
+        // The dim + card shown while the runtime loads. Lives here because both ways in need it:
+        // a click from the feed (landing.js) and a cold /app link (the gate below).
+        window.fxLoadingOverlay = function (show) {
+            var existing = document.getElementById('fx-loading');
+            if (!show) { if (existing) existing.remove(); return; }
+            if (existing) return;
+            var d = document.createElement('div');
+            d.id = 'fx-loading';
+            d.className = 'fx-load-overlay';
+            d.setAttribute('data-act', 'cancel-open');
+            d.innerHTML = '<div class="fx-load-pop" data-stop="1"><div class="fx-boot-ring"></div>LOADING EDITOR…</div>';
+            document.body.appendChild(d);
+        };
+
+        // Blazor has started, but its first render lands a tick later.
+        window.fxWhenEditorDrawn = function (done) {
+            var tries = 0;
+            (function poll() {
+                if (document.getElementById('app').children.length || ++tries > 60) return done();
+                setTimeout(poll, 50);
+            })();
+        };
+
+        // Loads the editor's payload and starts Blazor. ONE routine for both ways in — a cold
+        // /app (called immediately below) and a click on the landing (landing.js calls it) — so
+        // the two paths cannot drift. Resolves once the runtime has started; safe to call twice.
+        // Sequential and dynamic rather than document.write: after load, document.write would
+        // wipe the page, and the landing calls this long after load.
+        window.fxBootEditor = (function () {
+            var started = null;
+            function load(src, attrs) {
+                return new Promise(function (res, rej) {
+                    var el = document.createElement('script');
+                    el.src = src;
+                    if (attrs) Object.keys(attrs).forEach(function (k) { el.setAttribute(k, attrs[k]); });
+                    el.onload = res;
+                    el.onerror = function () { rej(new Error('failed to load ' + src)); };
+                    document.head.appendChild(el);
+                });
+            }
+            return function () {
+                if (started) return started;
+                started = (async function () {
+                    // Brotli boot: GitHub Pages doesn't serve .br/.gz for .dll/.wasm, so the
+                    // precompressed assets are fetched and decompressed client-side. Skipped on
+                    // localhost (the dev server serves compressed already).
+                    await load('decode.js?v=81');
+                    // Player mode renders canvas-only — no editor ever mounts, so skip ALL Monaco
+                    // downloads (~4 MB: jsInterop + loader + editor.main).
+                    if (!window.fiddleIsPlayer) {
+                        await load('_content/BlazorMonaco/jsInterop.js?v=81');
+                        await load('_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js?v=81');
+                        require.config({ paths: { vs: '_content/BlazorMonaco/lib/monaco-editor/min/vs' } });
+                        await load('_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js?v=81');
+                    }
+                    // Plain path, not the #[.{fingerprint}] placeholder form — that never resolved
+                    // for this cross-project RCL asset and the literal text hit the SPA fallback.
+                    await load('_content/DrawnUi.Fiddle/fiddle-intellisense.js?v=81');
+                    await load('_framework/blazor.webassembly.js?v=81', { autostart: 'false' });
+                    await Blazor.start({
+                        loadBootResource: function (type, name, defaultUri, integrity) {
+                            // dotnet.js carries the assembly manifest and has no hash of its own: pin it
+                            // to the publish number so a new build is never served from an old copy.
+                            if (type === 'dotnetjs') {
+                                var bs = document.querySelector('script[src*="blazor.webassembly.js"]');
+                                var pv = bs && (bs.getAttribute('src').match(/[?&]v=(\d+)/) || [])[1];
+                                return defaultUri + '?v=' + (pv || Date.now());
+                            }
+                            if (location.hostname !== 'localhost') {
+                                // Cache-bust every boot resource so a new publish is never served stale
+                                // from browser or CDN, WITHOUT renaming _framework files (the in-browser
+                                // Roslyn compiler fetches _framework/*.dll by plain name).
+                                var bust = integrity
+                                    ? '?v=' + integrity.replace(/[^a-zA-Z0-9]/g, '').slice(0, 16)
+                                    : '?t=' + Date.now();
+                                return (async function () {
+                                    const response = await fetch(defaultUri + '.br' + bust, { cache: 'no-cache' });
+                                    if (!response.ok) throw new Error(response.statusText);
+                                    const originalResponseArray = new Int8Array(await response.arrayBuffer());
+                                    const decompressedResponseArray = BrotliDecode(originalResponseArray);
+                                    const contentType = type === 'dotnetwasm' ? 'application/wasm' : 'application/octet-stream';
+                                    return new Response(decompressedResponseArray, { headers: { 'content-type': contentType } });
+                                })();
+                            }
+                        }
+                    });
+                })();
+                return started;
+            };
+        })();
+
+        if (!window.fxLanding) {
+            // One reveal, not three. Blazor's FIRST render is not "ready" — the editor and the
+            // canvas arrive a second or two after it — so waiting on that showed the header and
+            // footer, then a pause, then the editor. Wait for the parts that take the longest.
+            window.fxBootEditor().then(function () {
+                // ONE reveal. Blazor's first render is not "ready" — the editor and the canvas land
+                // a second or two later — so revealing on that showed header and footer, a pause,
+                // then the editor. Wait for the slowest parts, then drop the class: everything
+                // appears in the same frame.
+                //
+                // The PLAYER waits for its canvas alone, and it must wait for something: returning
+                // early here left the loader covering a page that had finished drawing, which is
+                // what every /p/ link showed after publish 80.
+                var tries = 0;
+                (function ready() {
+                    var editor = window.fiddleIsPlayer || document.querySelector('#app .monaco-editor');
+                    var canvas = document.querySelector('#app canvas');
+                    if (!(editor && canvas) && ++tries < 900) return setTimeout(ready, 50);   // 45 s ceiling
+                    requestAnimationFrame(function () {
+                        document.documentElement.classList.remove('fx-booting');
+                    });
+                })();
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentation — DrawnUI Fiddle</title>
+<meta name="description" content="How to use DrawnUI Fiddle: editor, Export Web, Community, tags, accounts, premium published apps (WASM, AOT, server-side), embedding, data in / events out, limits.">
+<link rel="canonical" href="https://fiddle.drawnui.net/docs/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Documentation — DrawnUI Fiddle">
+<meta property="og:description" content="How to use DrawnUI Fiddle: editor, Export Web, Community, tags, accounts, premium published apps (WASM, AOT, server-side), embedding, data in / events out, limits.">
+<meta property="og:url" content="https://fiddle.drawnui.net/docs/">
+<meta property="og:image" content="https://fiddle.drawnui.net/x.jpg">
+<meta name="theme-color" content="#0A0F1E">
+<link rel="icon" type="image/svg+xml" href="/_content/DrawnUi.Fiddle/favicon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --fx-bg:#05070d; --fx-text:#e6edf6; --fx-dim:#8b98ab; --fx-border:rgba(103,232,249,.18); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--fx-bg); color: var(--fx-text); font-family: "Exo 2","Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .fx-header { position: sticky; top: 0; z-index: 5; backdrop-filter: blur(10px); background: rgba(5,7,13,.8); border-bottom: 1px solid var(--fx-border); }
+  .fx-header-inner { max-width: 1180px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 18px; }
+  .fx-logo { color: var(--fx-text); text-decoration: none; font-weight: 800; letter-spacing: .02em; font-size: 18px; }
+  .fx-logo b { color: #67e8f9; }
+  .fx-nav { margin-left: auto; display: flex; gap: 6px; }
+  .fx-nav a { color: var(--fx-dim); text-decoration: none; padding: 6px 12px; border-radius: 999px; border: 1px solid transparent; font-size: 14px; }
+  .fx-nav a.on, .fx-nav a:hover { color: #67e8f9; border-color: var(--fx-border); }
+  .fx-legal { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; line-height: 1.65; font-size: 15px; }
+  .fx-legal h1 { font-size: 30px; margin: 0 0 4px; } .fx-legal h2 { font-size: 17px; margin: 26px 0 8px; color: #67e8f9; } .fx-legal h3 { font-size: 15px; margin: 20px 0 6px; color: #9ee8f5; }
+  .fx-legal p, .fx-legal li { color: #c9d3e0; } .fx-legal a { color: #8fd0ff; } .fx-legal-date { color: var(--fx-dim); font-size: 13px; }
+  .fx-legal h2 { scroll-margin-top: 70px; } .fx-legal code { font-size: 13px; background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 4px; }
+  .fx-legal pre { background: rgba(255,255,255,.05); border: 1px solid var(--fx-border); border-radius: 10px; padding: 12px 14px; overflow-x: auto; } .fx-legal pre code { background: none; padding: 0; }
+  .fx-legal h4 { font-size: 14px; margin: 18px 0 6px; color: #e6edf6; }
+  .fx-table { border-collapse: collapse; width: 100%; margin: 8px 0 14px; font-size: 14px; }
+  .fx-table th, .fx-table td { text-align: left; vertical-align: top; padding: 8px 10px; border: 1px solid var(--fx-border); }
+  .fx-table th { color: #9ee8f5; white-space: nowrap; width: 160px; }
+  .fx-docs-toc { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 18px; padding: 12px 14px; border: 1px solid var(--fx-border); border-radius: 12px; font-size: 13px; }
+  .fx-docs-toc a { color: var(--fx-dim); text-decoration: none; } .fx-docs-toc a:hover { color: #67e8f9; }
+  .fx-foot { max-width: 900px; margin: 0 auto; padding: 0 20px 40px; color: var(--fx-dim); font-size: 13px; }
+  .fx-foot a { color: #8fd0ff; }
+</style>
+</head>
+<body>
+<header class="fx-header"><div class="fx-header-inner">
+  <a class="fx-logo" href="/">DrawnUI <b>Fiddle</b></a>
+  <nav class="fx-nav"><a href="/docs/" class="on">Docs</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a><a href="/app">Open editor</a></nav>
+</div></header>
+<main class="fx-legal">
+<nav class="fx-docs-toc" aria-label="Sections"><a href="#what">What it is</a><a href="#editor">The editor</a><a href="#share">Export Web</a><a href="#frame">Download a snapshot</a><a href="#community">Community</a><a href="#tags">Tags</a><a href="#account">Account and library</a><a href="#apps">Premium (coming soon)</a><a href="#embed">Embedding</a><a href="#limits">Limits and lifetime</a><a href="#agents">For AI agents and scripts</a><a href="#faq">FAQ</a></nav>
+<h1>Documentation</h1>
+<p class="fx-legal-date">Last updated 30 August 2026</p>
+
+<h2 id="what">What it is</h2>
+<p>DrawnUI Fiddle is an online playground for <a href="https://drawnui.net" target="_blank" rel="noopener">DrawnUI</a>,
+a UI toolkit that draws everything on a SkiaSharp canvas. You write C# in the browser; Roslyn compiles
+it <b>in the browser</b> (WebAssembly, no server round-trip) and the result is drawn live on a canvas.</p>
+<p>Every widget on the Community page is <b>source code</b>, not a published app. Opening one loads
+the C# compiler and the .NET runtime once (that is the multi-megabyte payload you see the first time),
+then every snippet compiles and runs locally. The same code runs unchanged in .NET MAUI, Blazor,
+OpenTK and other .NET hosts.</p>
+
+<h2 id="editor">The editor</h2>
+<p><b>fiddle.drawnui.net/app</b>. Monaco editor on the left, live canvas on the right.</p>
+<ul>
+  <li><b>▶ Run</b> compiles and renders. <b>HotReload</b> re-runs automatically on every edit once the code has no errors.</li>
+  <li><b>IntelliSense</b>: completion, signatures and error squiggles come from the same in-browser Roslyn.</li>
+  <li><b>Presets</b> (top bar): built-in samples to start from. Each is a plain fiddle you can edit.</li>
+  <li><b>Description</b> (cyan field under the editor): up to 200 characters, shown on share cards, link previews and the Community page. <b>Tags</b> next to it, see <a href="/docs/#tags">Tags</a>.</li>
+  <li><b>Canvas background</b>: the colour you pick travels with the share.</li>
+  <li><b>Keyboard</b>: click the canvas first, then physical keys go to your drawn controls (drawn text editors, games). Keys go back to the code editor when you click it.</li>
+  <li>The <b>DrawnUI Fiddle</b> logo returns to the Community landing page without reloading.</li>
+</ul>
+
+<h2 id="share">Export Web</h2>
+<p>One menu in the editor toolbar, <b>⭳ Export Web</b>, for everything you can do with a fiddle. All of it is free;
+signing in only adds a library entry so you can find your things again.</p>
+<ul>
+  <li><b>Copy source code</b>: the C# to the clipboard, nothing uploaded.</li>
+  <li><b>Share as Fiddle</b>: a short link <code>fiddle.drawnui.net/f/&lt;id&gt;</code> that opens the code in the editor with a live preview. The id is a hash of the code: same code = same link, always.</li>
+  <li><b>Share as App</b>: copies <code>/p/&lt;id&gt;</code> — the canvas only, full screen, no editor.</li>
+  <li><b>Run as App</b>: opens that standalone page in a new tab.</li>
+  <li><b>Embed canvas as iframe</b>: preview + ready-made HTML for the running app, see <a href="/docs/#embed">Embedding</a>.</li>
+  <li><b>Embed source code as iframe</b>: preview + HTML for a light read-only source page (<code>/c/&lt;id&gt;</code>, syntax highlighted, no WebAssembly).</li>
+  <li><b>Download snapshot (JPG / PNG)</b>: see below.</li>
+  <li><b>Download sharing preview (JPG)</b>: a direct image link to the 1200×630 social card of the canvas (center-cropped). It is also the preview of every share link; hotlink it in a README or chat.</li>
+</ul>
+
+<h2 id="frame">Download a snapshot</h2>
+<p><b>Export Web → Download snapshot (JPG)</b> saves the full canvas exactly as rendered right now, at its current
+pixel size, JPEG quality 95. <b>(PNG)</b> is lossless and keeps transparency. Nothing is uploaded and
+nothing is added to your library, the file is produced in your browser. Handy for charts, mockups and
+documentation images: write the snippet, run it, download.</p>
+
+<h2 id="community">Community</h2>
+<p>The landing page lists fiddles people chose to publish. Cards show the title, description, author's
+display name, tags and rating. Click a card for details, then:</p>
+<ul>
+  <li><b>Editor</b>: loads the source into the editor and compiles it in your browser.</li>
+  <li><b>▶ Run</b>: plays it full screen in a new tab.</li>
+  <li><b>Share</b>: copies the existing share link. Nothing is created or added to your account.</li>
+  <li><b>Rate</b> 1–5 stars (signed in). Ranking is a Bayesian average, so one 5-star vote does not beat ten 4-star ones; unrated items start at 4.</li>
+  <li><b>Report</b> anything that breaks the <a href="/terms/">Terms</a>; a moderator gets notified.</li>
+  <li><b>‹ ›</b> at the sides (or the ← → keys) move to the previous / next card without closing; Esc closes.</li>
+</ul>
+<p><b>Publishing your own</b>: sign in, share it from the editor (<b>Export Web → Share as Fiddle</b>, give it a description), then in
+<b>Account → My fiddles</b> press <b>Submit to Community</b>. A moderator reviews it before it goes live;
+you can withdraw at any time, and <b>Unlist</b> later. The <b>Contribute</b> button on the landing page
+walks you through it.</p>
+
+<h2 id="tags">Tags</h2>
+<p>Up to 5 tags per fiddle, letters, digits and dashes (<code>chart</code>, <code>dashboard</code>,
+<code>game-2d</code>). Set them in the editor next to the description before you share, or later from
+the card popup (author or moderator). The Community page filters by tag and shows the most used ones
+above the grid.</p>
+
+<h2 id="account">Account and library</h2>
+<ul>
+  <li><b>Sign in</b> with your email: you get a 6-digit code, no password. Paste the code as it arrives.</li>
+  <li><b>Display name</b> (Account tab): shown on Community cards instead of your email, which is never shown.</li>
+  <li><b>My fiddles / My apps</b>: every share or export you make while signed in lands here. Paste a link someone sent you to add it. Filter pills: All · Community · In review · Pinned · Published · AOT.</li>
+  <li><b>Pin</b> (premium): keeps a share alive forever even with zero visitors, so old embeds never break.</li>
+  <li><b>Delete account</b> removes your account, library, ratings, reports and published apps. Shared code stays reachable by its link (it is content-addressed and may be identical to someone else's).</li>
+</ul>
+
+<h2 id="apps">Premium (coming soon)</h2>
+<p>Premium accounts get a second toolbar button, <b>★ Premium</b>. What it offers right now:</p>
+<ul>
+  <li><b>Publish pre-compiled app (WASM)</b> — a trimmed standalone web app on its own URL.</li>
+  <li><b>Publish pre-compiled AOT app (WASM)</b> — the same, compiled to native WebAssembly for CPU-heavy code.</li>
+  <li><b>Publish pre-compiled app (Server-Side)</b> — rendered on our server, streamed to the viewer, nothing to download.</li>
+</ul>
+<p><b>Publish pre-compiled app (WASM)</b> builds your fiddle into a trimmed Blazor WebAssembly app on its
+own URL, <code>fiddle.drawnui.net/a/&lt;id&gt;/</code>: no editor, no compiler, no badge, only your code
+plus DrawnUI and SkiaSharp. The build runs in the cloud and takes a few minutes; progress shows in
+<b>Account → My apps</b>.</p>
+<ul>
+  <li><b>Publish pre-compiled AOT app (WASM)</b> compiles the app, DrawnUI and SkiaSharp to native WebAssembly: faster for CPU-heavy code (physics, particles, big loops), at the cost of a larger download (~15 MB vs ~9) and a longer build (~8 min). Plain builds are best for most UI.</li>
+  <li>Runtime files are shared between apps and cached at the edge, so a second app on the same DrawnUI version loads fast.</li>
+  <li>Quotas: 10 apps, 300 MB of storage, 30 publishes per month. <b>Rebuild</b> or <b>Unpublish</b> from My apps.</li>
+</ul>
+<h3 id="server">Server apps</h3>
+<p><b>Publish pre-compiled app (Server-Side)</b> is the third option: publishing compiles the snippet on our
+server right away (about a second) — code that is not allowed in server apps is rejected at that moment with
+a readable error, nothing is published — and renders the first frame, so the link works instantly for the
+first visitor. Then the fiddle runs on our server and the viewer
+receives a stream of JPEG frames over a live connection — like a video that reacts to taps. Nothing to
+download, no WebAssembly: the page is up in well under a second on any device, even old phones. Best
+for charts, dashboards, animated widgets and demos. Frames are sent only while something changes on the
+canvas (animations, taps, images arriving) — an idle app costs no bandwidth; the cap is 30 fps. Each
+viewer gets their own instance (their own taps, animation from the start); the page shows the app's first
+frame instantly while the instance starts. Limits: physical keyboard and drag gestures are not forwarded
+yet (taps are), a session ends after 30 minutes of viewing, and the number of viewers rendering at the
+same time is limited (a viewer arriving when every slot is busy waits for one). Snippets must stay inside
+drawing code: file, network, reflection, threads and similar APIs are rejected with a readable error, web
+images are capped at 8 MB each, and every app runs in its own locked-down process with a memory and CPU
+budget. The link is <code>live.fiddle.drawnui.net/x/&lt;id&gt;</code>.</p>
+<p><b>URL options</b>: <code>?w=800&amp;h=500</code> canvas size in pixels · <code>&amp;fps=15</code> frame-rate cap (1–30) ·
+<code>&amp;embed=1</code> embed mode (bare image filling the frame, sized to the frame unless w/h are given, no chrome) ·
+<code>&amp;debug=1</code> shows the render stats line (fps, ms per frame, KB/s, cached/compiled). By default the page
+shows only the app; errors are always shown.</p>
+<p><b>Embedding a server app</b>: My apps → <b>Embed</b> opens a preview with the HTML to paste — an iframe pointing at
+<code>…/x/&lt;id&gt;?embed=1</code>. The app renders at the iframe's size on our server, so the same embed works on any
+page without shipping any code to the visitor:</p>
+<pre><code>&lt;div style="max-width:800px; aspect-ratio:800/500"&gt;
+  &lt;iframe src="https://live.fiddle.drawnui.net/x/&lt;id&gt;?embed=1"
+          style="width:100%;height:100%;border:0;border-radius:12px" loading="lazy"&gt;&lt;/iframe&gt;
+&lt;/div&gt;</code></pre>
+<h3 id="dataio">Data in, events out</h3>
+<p>A published server app is just a URL. Three things connect it to the world, and the same code works in the
+editor, in a WASM app and in a server app:</p>
+<table class="fx-table">
+<tr><th>Per-viewer values</th><td><code>…/x/&lt;id&gt;?city=London&amp;plan=pro</code> → <code>Fiddle.Query.Text("city")</code>. Different URL, different values. Nothing to store, nothing to call.</td></tr>
+<tr><th>Fetch data</th><td><code>Fiddle.Load(url, json =&gt; …)</code>: the app asks for a public JSON URL; the host fetches it for the sandboxed app and calls back. Weather, prices, your own API — anything https.</td></tr>
+<tr><th>React to taps</th><td><code>Fiddle.Open(url)</code> sends the viewer somewhere; <code>Fiddle.Emit("buy", data)</code> tells the page that embeds the app what happened.</td></tr>
+</table>
+
+<h4>1. Values from the URL</h4>
+<pre><code>var city  = Fiddle.Query.Text("city", "Belgrade");   // ?city=London
+var count = Fiddle.Query.Int("count", 5);             // Int / Double / Bool / Text / Csv / List, with fallbacks
+var xs    = Fiddle.Query.Csv("values");               // ?values=3,5,8 → [3, 5, 8]</code></pre>
+<p>Whoever makes the URL decides the values: a link, your page, your server. Extra parameters on a server app URL
+(everything except <code>w h fps embed debug</code>) reach the app unchanged.</p>
+
+<h4>2. Fetching data — <code>Fiddle.Load</code></h4>
+<p>The app never touches the network itself (server apps have no network access at all — that is the security
+wall). Instead it asks the host, which fetches on its behalf and hands back the parsed JSON:</p>
+<pre><code>Fiddle.Load("https://api.open-meteo.com/v1/forecast?latitude=51.5&amp;longitude=-0.1&amp;current=temperature_2m",
+    j =&gt; { temp.Text = j.GetProperty("current").GetProperty("temperature_2m").GetDouble() + "°"; temp.Update(); },
+    err =&gt; { temp.Text = err; temp.Update(); });</code></pre>
+<p>Rules: https only, public hosts only, 256 KB and 5 s per request, results cached 60 s (a thousand viewers of
+the same chart cost one request), at most 32 loads in flight. In the editor and the player the browser fetches
+(CORS applies). The <a href="/app/weather"><b>Weather</b> preset</a> is the full pattern: <code>?city=London</code>
+→ geocoding → forecast → card, tap to refresh. Try it with different cities in the params box.</p>
+
+<h4>3. When the viewer taps something</h4>
+<pre><code>new SkiaButton("Buy Pro").OnTapped(me =&gt;
+{
+    Fiddle.Emit("buy", new { plan = "pro", price = 9 });   // event out (JSON, max 4 KB)
+    Fiddle.Open("https://example.com/checkout?plan=pro");  // or: send the viewer somewhere
+});</code></pre>
+<p>Where it goes depends on how the app is shown:</p>
+<ul>
+  <li><b>Opened directly by its URL</b> (<code>…/x/&lt;id&gt;</code>): <code>Fiddle.Open</code> navigates the browser to that URL — a "Buy" button that leads to your checkout needs no JavaScript at all. <code>Emit</code> is logged to the browser console; add <code>&amp;debug=1</code> to also see each event as a toast while testing.</li>
+  <li><b>Embedded in your page</b> (iframe): both arrive in your page as a browser message, and your page decides — open a checkout, run any JS, <code>alert()</code>, re-fetch, navigate. This is the whole integration:</li>
+</ul>
+<pre><code>window.addEventListener('message', e =&gt; {
+  if (!e.data || !e.data.fiddle) return;          // { fiddle: "buy", app: "&lt;id&gt;", data: { plan: "pro", price: 9 } }
+  if (e.data.fiddle === 'buy')  openCheckout(e.data.data.plan);
+  if (e.data.fiddle === 'open') location.href = e.data.url;   // Fiddle.Open — navigate only if you want to
+});</code></pre>
+<p>The <a href="/app/dataio"><b>Data I/O</b> preset</a> is this pattern: three pricing cards, highlighted plan and
+currency from the URL, every Buy emits <code>buy</code>. My apps → Embed gives you the iframe HTML with this
+listener already in it, and the preview page shows a toast for every event so you can see it work.</p>
+<p><b>Coming next</b>: a stored per-app JSON document (<code>Fiddle.Data</code>) you can <code>PUT</code> through an API
+with a per-app key — set the chart's numbers once, every viewer renders them, running instances update live —
+plus webhooks and an event log in My apps.</p>
+<p>Limits: 20 events per second per viewer, 4 KB per event; URL parameters up to 64 keys / 2 KB each.</p>
+<p>Premium is currently assigned by the operator; contact <a href="mailto:fiddle@drawnui.net">fiddle@drawnui.net</a>.</p>
+
+<h2 id="embed">Embedding</h2>
+<p>Any fiddle can be embedded on your site with the HTML from <b>Export Web → Embed canvas as iframe</b>:</p>
+<pre><code>&lt;iframe src="https://fiddle.drawnui.net/p/&lt;id&gt;" width="600" height="400"
+        style="border:0;border-radius:12px" loading="lazy"&gt;&lt;/iframe&gt;</code></pre>
+<p>The player boots the .NET runtime inside the iframe (a few MB, cached after the first visit). The share
+link itself (<code>/f/&lt;id&gt;</code>) unfurls with the canvas screenshot in chats and social networks.</p>
+
+<h2 id="limits">Limits and lifetime</h2>
+<ul>
+  <li>Code up to 100 KB per fiddle; description 200 characters; 5 tags.</li>
+  <li>Files you add in the Resources panel travel with the share, up to <b>3 MB</b> per fiddle
+      (<b>25 MB</b> on premium; zipped, your files only — the built-in samples ship with the site
+      and are not stored).</li>
+  <li>Shares and sign-in codes are rate limited per hour.</li>
+  <li>Shares that nobody visits for <b>60 days</b> are deleted. Exceptions, kept permanently: fiddles listed on the Community page (or waiting for review), pinned fiddles, and shares made by premium or moderator accounts.</li>
+  <li>A free share that carries your own resource files is deleted after <b>3 days</b> without a
+      visit — storing files costs more than storing code, so those links have to be used. Every
+      visit restarts the 3 days. Premium and moderator shares keep their files permanently.</li>
+  <li>Community content is backed up nightly; moderators can export and restore it.</li>
+</ul>
+
+<h2 id="agents">For AI agents and scripts</h2>
+<p>The editor exposes a small JavaScript API on <code>window.fiddle</code> once loaded, meant for
+automation (Playwright, agents):</p>
+<pre><code>await fiddle.getState()        // { ready, running, status, errors }
+await fiddle.setCode(code)     // replace the editor code
+await fiddle.run()             // compile + render: { success, errors, status }
+await fiddle.getConsole()      // Console.WriteLine output of the snippet
+await fiddle.listPresets()     // [{ slug, name }]
+await fiddle.loadPreset(slug)  // load + run a built-in sample</code></pre>
+<p>Canvas pixels: take a compositor screenshot of <code>.fiddle-canvas canvas</code> (the WebGL buffer is
+not readable through <code>toDataURL</code>).</p>
+
+<h3 id="mcp">Connect an assistant (MCP)</h3>
+<p>The fiddle runs an <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP</a>
+server, so an assistant can search the community catalogue, read the C# of any snippet and publish
+code of its own. No account, no key. Add it to Claude Code with:</p>
+<pre><code>claude mcp add --transport http drawnui-fiddle https://fiddle.drawnui.net/mcp</code></pre>
+<p>Or, in any client that takes a JSON config:</p>
+<pre><code>{ "mcpServers": { "drawnui-fiddle": { "type": "http", "url": "https://fiddle.drawnui.net/mcp" } } }</code></pre>
+<p>Tools: <code>search_snippets</code>, <code>get_source</code>, <code>create_fiddle</code>,
+<code>get_preview</code>. The server card is at
+<a href="/.well-known/mcp/server-card.json">/.well-known/mcp/server-card.json</a>.</p>
+
+<h3 id="plaintext">Plain text and markdown</h3>
+<p>Every page that has a text form serves one. Ask for <code>text/markdown</code>, or append
+<code>.md</code>:</p>
+<pre><code>https://fiddle.drawnui.net/index.md        the whole catalogue
+https://fiddle.drawnui.net/show/{id}.md    one snippet: description, links, source
+https://fiddle.drawnui.net/c/{id}.md       just the C#
+https://fiddle.drawnui.net/openapi.json    the public read API
+https://fiddle.drawnui.net/llms-full.txt   these docs and the DrawnUI skills, inlined</code></pre>
+
+<h2 id="faq">FAQ</h2>
+<p><b>Why does the first load download so much?</b> Because your browser receives a real C# compiler and
+.NET runtime. It happens once; afterwards the files come from cache and the landing page pre-loads them
+in the background while you browse.</p>
+<p><b>Is my code sent to a server?</b> Compilation is local. Only when you share, export or publish is the
+source uploaded so the link can serve it.</p>
+<p><b>My app is slow, what can I do?</b> In the editor, the first run after a change includes a Roslyn compile;
+that is normal. If the <i>drawn</i> content itself is slow: cache stable subtrees (<code>UseCache</code>), avoid
+rebuilding controls every frame, keep effects (shaders, blur, shadows) on small areas. For a published app,
+CPU-heavy code (physics, particles, big loops) runs a lot faster as <b>Publish pre-compiled AOT app (WASM)</b>;
+the plain WASM build interprets .NET code and is best for ordinary UI.</p>
+<p><b>Why isn't my server app buttery smooth?</b> It is not lag — a server app is rendered on our server and
+sent as a stream of frames over the network, capped at 30 fps and limited by bandwidth, so it can't match
+a local 60/120 fps canvas for games or non-stop animation. Its strength is the opposite case: charts, static
+UIs, dashboards, low-animation widgets — they load in well under a second on any device with nothing to
+download, and cost nothing while idle. For rich animation or games, publish as a WASM app (AOT for heavy
+code) instead.</p>
+<p><b>Something looks different from MAUI.</b> DrawnUI owns its own layout and rendering on every
+platform; differences are bugs, report them at the <a href="https://github.com/DrawnUi/DrawnUi.Net/discussions/categories/fiddle" target="_blank" rel="noopener">DrawnUI discussions (Fiddle category)</a>.</p>
+<p><b>Contact</b>: <a href="mailto:fiddle@drawnui.net">fiddle@drawnui.net</a>.</p>
+</main>
+<footer class="fx-foot">Built with <a href="https://github.com/DrawnUi/DrawnUi.Net">DrawnUi.Net</a> · <a href="/">Community</a> · <a href="/app">Editor</a> · <a href="mailto:fiddle@drawnui.net">fiddle@drawnui.net</a></footer>
+</body>
+</html>

@@ -1,0 +1,57 @@
+# DrawnUI Fiddle
+
+> In-browser C# playground: code is compiled with Roslyn on WebAssembly and rendered live on a DrawnUI (SkiaSharp) canvas. Zero server. AI agents can drive it programmatically.
+
+## Skills (for AI Agents)
+
+- [Fiddle driving skill](https://fiddle.drawnui.net/skills/drawnui-fiddle/SKILL.md): window.fiddle API, snippet contract, screenshot rules, DOM test ids
+- [DrawnUI fluent C# skill](https://drawnui.net/skills/drawnui-fluent/SKILL.md): fluent code-behind composition patterns — the style fiddle snippets should use
+- [DrawnUI framework skill](https://drawnui.net/skills/drawnui/SKILL.md): controls, layouts, caching, gestures — deep framework guidance
+
+## Quickstart for agents
+
+Open https://fiddle.drawnui.net/ in a real browser (app is WebAssembly — plain HTTP fetch returns only the loader shell). Then:
+
+1. Poll `window.fiddle && (await fiddle.getState()).ready === true` (cold start 10-20s).
+2. `await fiddle.setCode(code)` — code is a C# method body that returns a SkiaControl. Never simulate keystrokes into the Monaco editor.
+3. `await fiddle.run()` -> { success, errors, status }; errors are "L<line>: message" in editor coordinates.
+4. `await fiddle.getConsole()` -> Console.WriteLine output lines.
+5. Canvas pixels: compositor element screenshot of [data-testid="fiddle-canvas"]. canvas.toDataURL() is always blank (WebGL, preserveDrawingBuffer:false) — do not use.
+6. Verifying success: run() returning { success: true } means compiled AND rendered to canvas. DOM cross-checks: [data-testid="fiddle-status"] shows "Compiled and rendered", [data-testid="fiddle-errors"] exists only when there are errors. Runtime behavior evidence: Console.WriteLine in your snippet -> getConsole().
+
+## MCP server
+
+`https://fiddle.drawnui.net/mcp` — Streamable HTTP, JSON-RPC, no account and no key. Tools: `search_snippets` (find a working example by words or tag), `get_source` (the complete C# of one snippet), `create_fiddle` (publish code, get a permanent link), `get_preview` (the rendered frame of a snippet). Server card: `https://fiddle.drawnui.net/.well-known/mcp/server-card.json`.
+
+    claude mcp add --transport http drawnui-fiddle https://fiddle.drawnui.net/mcp
+
+## Markdown, without a browser
+
+Every page with a text form serves one. Send `Accept: text/markdown`, or append `.md`:
+
+- `https://fiddle.drawnui.net/index.md` — the whole community catalogue, one page
+- `https://fiddle.drawnui.net/show/<id>.md` — one snippet: title, description, links, C# source
+- `https://fiddle.drawnui.net/c/<id>.md` — just the C#
+- `https://fiddle.drawnui.net/openapi.json` — the public read API, described
+- `https://fiddle.drawnui.net/.well-known/ai-catalog.json` — every machine-readable entry point here
+
+## HTTP API (no browser needed)
+
+Create and read fiddles with plain HTTP. Compilation always happens in the visitor's browser, so the API cannot verify that code compiles — test in the browser flow above first when correctness matters.
+
+- `POST https://fiddle.drawnui.net/api/share` — JSON body `{ "code": "<C# method body>", "bg": "#RRGGBB" (optional canvas background), "png": "<base64 PNG/JPEG thumbnail>" (optional), "desc": "<plain-text description, max 200 chars, HTML stripped>" (optional; shown on link previews, the editor and the Community card) }`. Max code 100 KB. Returns `{ "id": "...", "url": "https://fiddle.drawnui.net/f/<id>" }`. Id is derived from the code (same code = same id, idempotent). Entries live 60 days after last access.
+- `GET https://fiddle.drawnui.net/api/share/<id>` — the C# source as text/plain (headers `X-Fiddle-Bg` = background, `X-Fiddle-Desc` = URL-encoded description, when set). 404 if unknown.
+- Editor lives at `https://fiddle.drawnui.net/app` (the root `/` is the landing + community feed). Links for humans: `https://fiddle.drawnui.net/f/<id>` (editor + live preview), `https://fiddle.drawnui.net/p/<id>` (standalone player, canvas only, iframe-embeddable), `https://fiddle.drawnui.net/c/<id>` (read-only highlighted source, no WASM).
+- Embed: `<iframe src="https://fiddle.drawnui.net/p/<id>" style="width:100%;height:100%;border:0"></iframe>`
+
+Example:
+
+    curl -s -X POST https://fiddle.drawnui.net/api/share -H "Content-Type: application/json" -d '{"code":"return new SkiaLabel { Text = \"Hello\" };"}'
+
+## Full context
+
+- [llms-full.txt](https://fiddle.drawnui.net/llms-full.txt): this file plus the complete fiddle driving skill in one fetch
+
+## Source
+
+- [DrawnUI](https://github.com/DrawnUi/DrawnUi.Net): the rendering engine

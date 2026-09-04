@@ -1,0 +1,27 @@
+# Crawlers must not download the Blazor WASM payload (~20MB runtime + assemblies +
+# Monaco). The page's indexable content (title, meta, JSON-LD, SEO footer) is static
+# HTML that renders without any of it — blocking these keeps rendering fast and
+# deterministic for bots and saves crawl budget. Humans are unaffected.
+User-agent: *
+# Content Signals (aipref vocabulary, https://contentsignals.org/): everything here is public
+# sample code meant to be read, quoted and learned from, so all three uses are granted. This
+# line used to come from Cloudflare's managed robots.txt with ai-train=no; that managed block
+# was turned off on 2026-09-04 (AI crawlers deliberately unblocked), so the declaration lives
+# here now — without it the site declares nothing at all.
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Disallow: /_framework/
+Disallow: /_content/
+Disallow: /decode.js
+# Drafts are unfinished work with unguessable ids: never index them.
+Disallow: /d/
+# Icons stay fetchable (longest-match wins over the /_content/ disallow).
+Allow: /_content/DrawnUi.Fiddle/favicon.svg
+Allow: /_content/DrawnUi.Fiddle/favicon.png
+Allow: /_content/DrawnUi.Fiddle/apple-icon.png
+Allow: /_content/DrawnUi.Fiddle/seed/drawnui.svg
+Allow: /
+
+Sitemap: https://fiddle.drawnui.net/sitemap.txt
+# Agent Resource Discovery: every machine-readable entry point (MCP server, OpenAPI, markdown
+# catalogue) in one manifest, so an agent does not have to probe for them.
+Agentmap: https://fiddle.drawnui.net/.well-known/ai-catalog.json
